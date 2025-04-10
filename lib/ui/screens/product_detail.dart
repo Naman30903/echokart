@@ -1,5 +1,7 @@
+import 'package:echokart/bloc/cart_bloc.dart';
 import 'package:echokart/data/models/product.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -9,7 +11,17 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Product Details'), elevation: 0),
+      appBar: AppBar(
+        title: Text('Product Details'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
+            tooltip: 'View Cart',
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,25 +152,88 @@ class ProductDetailScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: ElevatedButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${product.title} added to cart'),
-                duration: const Duration(seconds: 2),
-              ),
+        child: BlocBuilder<CartBloc, CartState>(
+          builder: (context, state) {
+            // Check if this product is already in cart
+            final inCart = state.items.any(
+              (item) => item.product.id == product.id,
+            );
+
+            return Row(
+              children: [
+                if (inCart) ...[
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'In Cart',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 3,
+                    child: _buildAddButton(context, 'View Cart', () {
+                      Navigator.pushNamed(context, '/cart');
+                    }),
+                  ),
+                ] else
+                  Expanded(
+                    child: _buildAddButton(context, 'Add to Cart', () {
+                      context.read<CartBloc>().add(AddToCart(product));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${product.title} added to cart'),
+                          duration: const Duration(seconds: 2),
+                          action: SnackBarAction(
+                            label: 'VIEW CART',
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/cart');
+                            },
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+              ],
             );
           },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddButton(
+    BuildContext context,
+    String text,
+    VoidCallback onPressed,
+  ) {
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            'Add to Cart',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

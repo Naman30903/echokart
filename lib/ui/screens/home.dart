@@ -1,3 +1,4 @@
+import 'package:echokart/bloc/cart_bloc.dart';
 import 'package:echokart/data/models/product.dart';
 import 'package:echokart/data/repository/product_service.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:echokart/ui/screens/audio_player.dart';
 import 'package:echokart/ui/widgets/product_card.dart';
 import 'package:echokart/ui/widgets/loading_indicator.dart';
 import 'package:echokart/ui/widgets/error_widget.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -43,8 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildProductsView();
       case 1:
         return const FormScreen();
-      // case 2:
-      //   return const AudioPlayerScreen();
+      case 2:
+        return const AudioPlayerScreen();
       default:
         return _buildProductsView();
     }
@@ -165,6 +167,50 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('EchoKart'),
+        actions: [
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart),
+                    onPressed: () => Navigator.pushNamed(context, '/cart'),
+                    tooltip: 'View Cart',
+                  ),
+                  if (state.itemCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          '${state.itemCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
       body: SafeArea(child: _getSelectedScreen()),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

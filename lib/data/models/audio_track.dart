@@ -1,46 +1,35 @@
-import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-
 class AudioTrack {
   final String title;
   final String artist;
   final String imageUrl;
-  final String audioUrl;
+  final String audioPath;
+  final bool isAsset; // Flag to indicate if audio is from assets
+  bool isFavorite;
 
   AudioTrack({
     required this.title,
     required this.artist,
     required this.imageUrl,
-    required this.audioUrl,
+    required this.audioPath,
+    this.isAsset = true, // Default to true for assets
+    this.isFavorite = false,
   });
-}
 
-class AudioProgressBar extends StatelessWidget {
-  final AudioPlayer audioPlayer;
-
-  const AudioProgressBar({super.key, required this.audioPlayer});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<Duration?>(
-      stream: audioPlayer.positionStream,
-      builder: (context, snapshot) {
-        final position = snapshot.data ?? Duration.zero;
-        return StreamBuilder<Duration?>(
-          stream: audioPlayer.durationStream,
-          builder: (context, snapshot) {
-            final duration = snapshot.data ?? Duration.zero;
-            return Slider(
-              value: position.inMilliseconds.toDouble(),
-              min: 0,
-              max: duration.inMilliseconds.toDouble(),
-              onChanged: (value) {
-                audioPlayer.seek(Duration(milliseconds: value.round()));
-              },
-            );
-          },
-        );
-      },
+  AudioTrack copyWith({
+    String? title,
+    String? artist,
+    String? imageUrl,
+    String? audioPath,
+    bool? isAsset,
+    bool? isFavorite,
+  }) {
+    return AudioTrack(
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      imageUrl: imageUrl ?? this.imageUrl,
+      audioPath: audioPath ?? this.audioPath,
+      isAsset: isAsset ?? this.isAsset,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 }
